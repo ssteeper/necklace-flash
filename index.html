@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Necklace Flasher</title>
+<style>
+  :root {
+    --bg: #0b0b0d; --panel: #16161a; --line: #2a2a31; --text: #ececf1; --muted: #9a9aa6;
+    --accent: #b59bff; --accent-text: #0b0b0d; --good: #7ce3a0; --bad: #ff8a7a;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f6f6f8; --panel: #ffffff; --line: #dcdce2; --text: #17171c; --muted: #62626e;
+            --accent: #5b3fd6; --accent-text: #ffffff; --good: #1d7a43; --bad: #b3261e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 34rem; margin: 0 auto; padding: 24px 16px 40px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0 0 20px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 12px 0 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  label { display: block; color: var(--muted); font-size: 0.9rem; margin: 12px 0 4px; }
+  label:first-child { margin-top: 0; }
+  select, input[type=file] { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+                             border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+  button { width: 100%; font: inherit; font-weight: 600; font-size: 1.1rem; padding: 14px; border: 0;
+           border-radius: 10px; background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .status { margin: 12px 0 0; min-height: 1.5em; }
+  .status.good { color: var(--good); }
+  .status.bad, .hint.bad { color: var(--bad); }
+  .hint { color: var(--muted); font-size: 0.9rem; margin: 8px 0 0; }
+  dl[hidden] { display: none; }
+  .bar { height: 8px; border-radius: 4px; background: var(--line); margin-top: 12px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+  details { color: var(--muted); }
+  summary { cursor: pointer; }
+  pre { margin: 8px 0 0; max-height: 14rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;
+        font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; color: var(--text); }
+  ul { margin: 8px 0 0; padding-left: 20px; }
+  li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Necklace flasher</h1>
+  <p class="lede">Writes firmware to the necklace pendant over USB, from Chrome on an Android phone.</p>
+
+  <section class="panel">
+    <label for="file">Firmware package</label>
+    <input id="file" type="file" accept=".zip,.bin,application/zip,application/octet-stream">
+    <p class="hint">In the picker, open Google Drive and choose <b>necklace-latest.zip</b> in the
+      <b>Necklace firmware</b> folder (or an older build there).</p>
+    <dl id="pkg" hidden></dl>
+  </section>
+
+  <section class="panel">
+    <label for="link">Connection</label>
+    <select id="link">
+      <option value="auto">Automatic</option>
+      <option value="usb">WebUSB</option>
+      <option value="serial">Web Serial</option>
+    </select>
+    <p id="support" class="hint"></p>
+  </section>
+
+  <button id="go" disabled>Flash</button>
+  <div id="bar" class="bar" hidden><div id="bar-fill"></div></div>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+
+  <section class="panel">
+    <details>
+      <summary>Log</summary>
+      <pre id="log"></pre>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>How it works</summary>
+      <ul>
+        <li>The firmware never touches this site: you choose the file, and it goes from the phone to the pendant.</li>
+        <li>Plug the pendant into the phone with a USB-C cable (or a USB OTG adapter), tap Flash, and pick the
+            pendant (USB JTAG/serial debug unit) in Chrome's list. It restarts into its bootloader by itself.</li>
+        <li>A package writes the bootloader, the partition table and the app; a bare app image writes only the app.
+            Nothing is erased first, so your saved settings and the worlds pack are kept.</li>
+        <li>Before writing it checks the package against its checksums, that the device is an ESP32-C6 with 16 MB of
+            flash, and asks first if the pendant's partition table differs from the package's.</li>
+        <li>Every write is verified. If a flash fails part-way, flash again: the chip's bootloader is in ROM and
+            always answers.</li>
+        <li>If the pendant isn't in the list, set Connection to the other option and try again.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+<script type="module" src="flash.js"></script>
+</body>
+</html>

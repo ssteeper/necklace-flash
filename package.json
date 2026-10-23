@@ -1,0 +1,18 @@
+{
+  "name": "necklace-flash",
+  "private": true,
+  "description": "Bundles the flasher's libraries into vendor.js: npm ci && npm run build",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild vendor-entry.js --bundle --format=esm --minify --legal-comments=eof --outfile=vendor.js"
+  },
+  "dependencies": {
+    "esptool-js": "0.7.0",
+    "fflate": "0.8.2",
+    "spark-md5": "3.0.2",
+    "web-serial-polyfill": "1.0.15"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}
